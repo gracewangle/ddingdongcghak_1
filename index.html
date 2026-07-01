@@ -677,6 +677,11 @@
       background:#fff;
       padding:12px;
     }
+    .option-fields{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
     .calc-grid{display:grid;grid-template-columns:1fr;gap:10px}
     .calc-box{
       border:1px solid var(--border);
@@ -1643,7 +1648,8 @@
       .hero{grid-template-columns:1fr auto;align-items:center}
       .hero-actions{justify-content:flex-end}
       .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .option-row{grid-template-columns:minmax(0,1.4fr) minmax(0,.8fr) minmax(0,.8fr) auto;align-items:end}
+      .option-row{grid-template-columns:minmax(0,1fr) auto;align-items:end}
+      .option-fields{grid-template-columns:minmax(0,1.4fr) minmax(0,.8fr) minmax(0,.8fr)}
       .calc-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
       .period-group{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
       .period-group-head{grid-column:1/-1}
@@ -5604,11 +5610,6 @@
                   <input class="input" id="productSubtitle" type="text" autocomplete="off">
                 </label>
                 <label class="field">
-                  <span>기본 판매 항목명</span>
-                  <small>홈 카드 하단 및 주문 항목에 표시됩니다.</small>
-                  <input class="input" id="baseItemName" type="text" autocomplete="off">
-                </label>
-                <label class="field">
                   <span>배송 안내 문구</span>
                   <small>예: 11시30분 이전 결제 시 당일배송</small>
                   <input class="input" id="deliveryLabel" type="text" autocomplete="off">
@@ -5651,6 +5652,10 @@
                 <label class="field">
                   <span>띵동가 *</span>
                   <input class="input" id="salePrice" type="number" min="0" inputmode="numeric">
+                </label>
+                <label class="field">
+                  <span>기본 판매 수량</span>
+                  <input class="input" id="baseStock" type="number" min="0" inputmode="numeric">
                 </label>
                 <label class="field">
                   <span>가격 유형</span>
@@ -5793,11 +5798,6 @@
                   <input class="input" id="productSubtitle" type="text" autocomplete="off" value="${escapeHtml(editingProduct?.subtitle || "")}">
                 </label>
                 <label class="field">
-                  <span>기본 판매 항목명</span>
-                  <small>홈 카드 하단 및 주문 항목에 표시됩니다.</small>
-                  <input class="input" id="baseItemName" type="text" autocomplete="off" value="${escapeHtml(editingProduct?.baseItemName || "")}">
-                </label>
-                <label class="field">
                   <span>배송 안내 문구</span>
                   <small>예: 11시30분 이전 결제 시 당일배송</small>
                   <input class="input" id="deliveryLabel" type="text" autocomplete="off" value="${escapeHtml(editingProduct?.deliveryLabel || "")}">
@@ -5840,6 +5840,10 @@
                 <label class="field">
                   <span>띵동가 *</span>
                   <input class="input" id="salePrice" type="number" min="0" inputmode="numeric" value="${editingProduct ? Number(editingProduct.salePrice || 0) : ""}">
+                </label>
+                <label class="field">
+                  <span>기본 판매 수량</span>
+                  <input class="input" id="baseStock" type="number" min="0" inputmode="numeric" value="${editingProduct ? Number(editingProduct.baseStock ?? editingProduct.stock ?? editingProduct.totalStock ?? 0) : ""}">
                 </label>
                 <label class="field">
                   <span>가격 유형</span>
@@ -5973,18 +5977,20 @@
       const stock = hasOption ? Number(option.stock || 0) : "";
       return `
         <div class="option-row" data-option-row>
-          <label class="field">
-            <span>옵션명</span>
-            <input class="input" type="text" data-option-name value="${name}">
-          </label>
-          <label class="field">
-            <span>옵션 가격</span>
-            <input class="input" type="number" min="0" inputmode="numeric" data-option-price value="${price}">
-          </label>
-          <label class="field">
-            <span>재고 수량</span>
-            <input class="input" type="number" min="0" inputmode="numeric" data-option-stock value="${stock}">
-          </label>
+          <div class="option-fields">
+            <label class="field">
+              <span>옵션명</span>
+              <input class="input" type="text" data-option-name value="${name}">
+            </label>
+            <label class="field">
+              <span>옵션 수량</span>
+              <input class="input" type="number" min="0" inputmode="numeric" data-option-stock value="${stock}">
+            </label>
+            <label class="field">
+              <span>금액</span>
+              <input class="input" type="number" min="0" inputmode="numeric" data-option-price value="${price}">
+            </label>
+          </div>
           <button class="btn" type="button" data-action="remove-option">옵션 삭제</button>
         </div>
       `;
@@ -6084,13 +6090,13 @@
     function saveProductFromForm(){
       const title = document.getElementById("productTitle")?.value.trim() || "";
       const subtitle = document.getElementById("productSubtitle")?.value.trim() || "";
-      const baseItemName = document.getElementById("baseItemName")?.value.trim() || "";
       const deliveryLabel = document.getElementById("deliveryLabel")?.value.trim() || "";
       const badges = Array.from(document.querySelectorAll('input[name="productBadge"]:checked')).map(function(input){
         return input.value;
       });
       const description = document.getElementById("productDescription")?.value.trim() || "";
       const salePrice = toNumber(document.getElementById("salePrice")?.value);
+      const baseStock = toNumber(document.getElementById("baseStock")?.value);
       const priceType = document.getElementById("priceType")?.value === "commission" ? "commission" : "supply";
       const supplierPrice = toNumber(document.getElementById("supplierPrice")?.value);
       const vendorCommissionRateValue = document.getElementById("vendorCommissionRate")?.value ?? "";
@@ -6133,7 +6139,7 @@
         return;
       }
       if(collectedOptions.some(function(option){ return !option.priceRaw || option.price < 0; })){
-        alert("옵션 가격을 입력해주세요.");
+        alert("옵션 금액을 입력해주세요.");
         return;
       }
       if(collectedOptions.some(function(option){ return !option.stockRaw || option.stock < 0; })){
@@ -6153,7 +6159,7 @@
         id: existingProduct?.id || "p_" + Date.now(),
         title: title,
         subtitle: subtitle,
-        baseItemName: baseItemName,
+        baseItemName: title,
         deliveryLabel: deliveryLabel,
         badges: badges,
         description: description,
@@ -6166,6 +6172,7 @@
         revenueShareRate: existingProduct?.revenueShareRate ?? vendorCommissionRate,
         shippingFee: shippingFee,
         commissionRate: commissionRate,
+        baseStock: baseStock,
         status: existingProduct?.status || "selling",
         curatorRecruitStartDate: curatorRecruitStartDate,
         curatorRecruitDeadline: curatorRecruitDeadline,
@@ -6746,7 +6753,7 @@
         productImageDraft.thumbnail = "";
         renderImagePreview();
       }
-      if(action === "order-ready"){
+      if(action === "order-카페아뜨레ready"){
         showToast("주문 기능은 다음 단계에서 연결합니다.");
       }
     });
@@ -6763,4 +6770,3 @@
   </script>
 </body>
 </html>
-
