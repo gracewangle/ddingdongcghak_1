@@ -54,11 +54,12 @@
       align-items:center;
       justify-content:space-between;
       gap:12px;
+      position:relative;
     }
     .brand{display:flex;align-items:center;gap:10px;font-weight:900}
     .brand-logo{
       display:block;
-      width:132px;
+      width:128px;
       height:auto;
       object-fit:contain;
     }
@@ -103,13 +104,13 @@
     .btn.secondary{background:#111827;border-color:#111827;color:#fff}
     .btn:disabled{cursor:not-allowed;opacity:.55;background:#e5e7eb;border-color:#d1d5db;color:#6b7280}
     .admin-secret-btn{
-      width:42px;
-      min-height:42px;
+      width:32px;
+      min-height:32px;
       border:1px solid transparent;
       border-radius:50%;
       background:transparent;
-      color:#94a3b8;
-      font-size:22px;
+      color:rgba(148,163,184,.42);
+      font-size:18px;
       font-weight:950;
       line-height:1;
     }
@@ -1056,26 +1057,52 @@
     .order-option-info strong{font-size:17px}
     .order-option-info span{color:var(--muted);font-weight:800;font-size:13px}
     .home-buy-list{display:grid;gap:12px}
+    .hero.home-hero{
+      padding:14px 0 8px;
+      border:0;
+      border-radius:0;
+      background:transparent;
+      box-shadow:none;
+    }
+    .hero.home-hero h1{
+      max-width:420px;
+      font-size:25px;
+      line-height:1.22;
+      letter-spacing:0;
+    }
     .home-buy-card{
       overflow:hidden;
       border:1px solid var(--border);
-      border-radius:16px;
+      border-radius:18px;
       background:#fff;
-      box-shadow:0 6px 18px rgba(17,24,39,.05);
+      box-shadow:0 10px 28px rgba(17,24,39,.06);
     }
     .home-delivery-badge{
-      padding:6px 12px;
-      background:#fff7f7;
+      padding:8px 14px;
+      background:#fff6f6;
       color:#ef4444;
       font-weight:950;
-      font-size:12px;
+      font-size:13px;
       line-height:1.2;
     }
     .home-badge-row{
       display:flex;
       flex-wrap:wrap;
-      gap:4px;
-      margin-bottom:4px;
+      gap:6px;
+      margin-bottom:8px;
+    }
+    .home-badge-row .badge{
+      min-height:28px;
+      padding:0 10px;
+      font-size:12px;
+      box-shadow:none;
+    }
+    .home-badge-row .badge.coming{
+      min-height:30px;
+      padding:0 12px;
+      font-size:12px;
+      border-color:#fed7aa;
+      box-shadow:none;
     }
     .home-badge{
       display:inline-flex;
@@ -1095,14 +1122,14 @@
     .home-badge.low{background:#ef4444}
     .home-buy-main{
       display:grid;
-      grid-template-columns:minmax(0,1fr) 96px;
-      gap:10px;
+      grid-template-columns:minmax(0,1fr) 108px;
+      gap:14px;
       align-items:center;
-      padding:4px 10px;
+      padding:14px;
     }
     .home-buy-main h3{
       margin:0;
-      font-size:15px;
+      font-size:17px;
       line-height:1.3;
       display:-webkit-box;
       -webkit-line-clamp:2;
@@ -1110,8 +1137,8 @@
       overflow:hidden;
     }
     .home-buy-main .product-subtitle{
-      margin:3px 0 0;
-      font-size:12px;
+      margin:4px 0 0;
+      font-size:13px;
       line-height:1.3;
       display:-webkit-box;
       -webkit-line-clamp:1;
@@ -1120,13 +1147,13 @@
     }
     .home-buy-main .price{
       display:block;
-      font-size:16px;
-      font-weight:700;
-      margin-top:6px;
+      font-size:20px;
+      font-weight:950;
+      margin-top:8px;
       line-height:1.15;
     }
     .home-buy-thumb{
-      width:96px;
+      width:108px;
       aspect-ratio:1/1;
       overflow:hidden;
       border-radius:12px;
@@ -1952,7 +1979,7 @@
     function renderHomeStatusBadges(product, saleState){
       const state = saleState || getProductSaleState(product);
       if(state.state === "comingSoon"){
-        const openDate = product?.saleStartDate ? formatDate(product.saleStartDate) + " 오픈" : "오픈 예정";
+        const openDate = product?.saleStartDate ? String(product.saleStartDate).slice(5).replace("-", "/") + " 오픈" : "오픈예정";
         return `<span class="badge coming">COMING SOON · ${escapeHtml(openDate)}</span>`;
       }
       const label = productOrderDdayLabel(product);
@@ -2084,7 +2111,7 @@
         return getProductSaleState(product).state !== "closed";
       });
       app.innerHTML = `
-        <section class="hero">
+        <section class="hero home-hero">
           <div>
             <h1>띵동착 공동구매 상품을 한눈에 확인하세요</h1>
           </div>
@@ -6619,3 +6646,4 @@
   </script>
 </body>
 </html>
+
