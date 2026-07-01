@@ -2121,6 +2121,19 @@
       return "";
     }
 
+    function compareHomeProducts(a, b){
+      const stateA = getProductSaleState(a).state;
+      const stateB = getProductSaleState(b).state;
+      const groupA = stateA === "comingSoon" ? 1 : 0;
+      const groupB = stateB === "comingSoon" ? 1 : 0;
+      if(groupA !== groupB) return groupA - groupB;
+      const deadlineA = dateStart(productOrderDeadline(a));
+      const deadlineB = dateStart(productOrderDeadline(b));
+      const timeA = deadlineA ? deadlineA.getTime() : Number.MAX_SAFE_INTEGER;
+      const timeB = deadlineB ? deadlineB.getTime() : Number.MAX_SAFE_INTEGER;
+      return timeA - timeB;
+    }
+
     function isValidDateString(value){
       if(!value) return true;
       if(!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -2222,7 +2235,7 @@
         const status = product?.status || "selling";
         if(!product || ["stopped","stop","paused","deleted","draft"].includes(status)) return false;
         return getProductSaleState(product).state !== "closed";
-      });
+      }).sort(compareHomeProducts);
       app.innerHTML = `
         <section class="hero home-hero">
           <div>
