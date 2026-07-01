@@ -176,8 +176,10 @@
       padding:0 10px;
       font-size:13px;
       font-weight:900;
+      white-space:nowrap;
     }
     .badge.gray{background:#f3f4f6;color:#4b5563}
+    .badge.sale-date-badge{background:#fff7ed;color:#ea580c;border:1px solid #fdba74}
     .badge.stop{background:#fef2f2;color:#b91c1c}
     .badge.coming{
       min-height:34px;
@@ -1021,6 +1023,13 @@
       box-shadow:0 8px 22px rgba(17,24,39,.05);
     }
     .order-card h3{margin:0;font-size:21px}
+    .order-title-fit{
+      max-width:100%;
+      white-space:nowrap;
+      word-break:keep-all;
+      letter-spacing:-.06em;
+      line-height:1.2;
+    }
     .order-summary{
       border:1px solid #bbf7d0;
       border-radius:16px;
@@ -1508,7 +1517,7 @@
     .toast.show{display:block}
 
     @media (max-width:520px){
-      body{font-size:15px}
+      body{font-size:14px;line-height:1.55}
       .topbar-inner{
         min-height:68px;
         align-items:center;
@@ -1534,14 +1543,15 @@
         box-shadow:0 8px 20px rgba(17,24,39,.04);
       }
       .order-card h3{
-        font-size:24px;
+        font-size:20px;
         line-height:1.25;
         overflow-wrap:anywhere;
       }
-      .order-card .product-subtitle{font-size:15px;line-height:1.45}
-      .order-card .price{font-size:28px;line-height:1.15}
-      .badge-row{gap:6px}
-      .badge{min-height:28px;padding:0 10px;font-size:12px}
+      .order-card .product-subtitle{font-size:14px;line-height:1.55;margin-top:4px}
+      .order-card .price{font-size:24px;line-height:1.15}
+      .badge-row{gap:6px;flex-wrap:nowrap}
+      .badge{min-height:27px;padding:0 9px;font-size:11px;letter-spacing:-.02em}
+      .badge.sale-date-badge{color:#ea580c;background:#fff3e8;border-color:#fb923c}
       .order-option-card{
         grid-template-columns:1fr;
         gap:12px;
@@ -1582,30 +1592,36 @@
       .payment-card-head{display:grid;gap:10px}
       .payment-card-title{font-size:17px}
       .payment-tabs{width:100%;display:grid;grid-template-columns:1fr 1fr}
-      .payment-tab{min-height:44px;font-size:15px;padding:0 10px}
+      .payment-tab{min-height:42px;font-size:14px;padding:0 10px}
       .payment-amount{
         padding:14px;
         border-radius:18px;
       }
-      .payment-amount-head strong:first-child{font-size:17px}
-      .payment-amount-head .order-total{font-size:30px}
+      .payment-amount-head strong:first-child{font-size:15px}
+      .payment-amount-head .order-total{font-size:24px}
       .payment-account{
-        grid-template-columns:68px minmax(0,1fr);
-        gap:8px 10px;
+        grid-template-columns:62px minmax(0,1fr);
+        gap:8px 8px;
+        font-size:14px;
       }
       .payment-account strong{
         min-width:0;
-        overflow-wrap:anywhere;
-        word-break:break-all;
+        overflow-wrap:normal;
+        word-break:keep-all;
         line-height:1.35;
+      }
+      .payment-account strong:first-of-type{
+        white-space:nowrap;
+        font-size:13px;
+        letter-spacing:-.08em;
       }
       .payer-highlight,.payment-notice,.seoulpay-notice{
         padding:14px;
         border-radius:18px;
       }
       .payer-help,.payment-notice,.seoulpay-notice{
-        font-size:15px;
-        line-height:1.55;
+        font-size:13.5px;
+        line-height:1.65;
         overflow-wrap:anywhere;
       }
       .input,.textarea{
@@ -2465,15 +2481,6 @@
 
       app.innerHTML = `
         ${renderCurrentRefBadge()}
-        <section class="hero">
-          <div>
-            <h1>${escapeHtml(product.title)}</h1>
-            <p>${escapeHtml(product.subtitle)}</p>
-          </div>
-          <div class="hero-actions">
-            <button class="btn" type="button" data-action="home">목록으로</button>
-          </div>
-        </section>
         <section class="section-head">
           <div>
             <h2>상품 정보</h2>
@@ -2552,6 +2559,8 @@
       const options = normalizedProductOptions(product);
       const buyerInfo = readJson(BUYER_INFO_KEY, {});
       const savedBuyerAddress = [buyerInfo.postalCode ? `(${buyerInfo.postalCode})` : "", buyerInfo.buyerAddress || "", buyerInfo.buyerAddressDetail || ""].filter(Boolean).join(" ");
+      const orderTitle = product.title || "상품";
+      const orderTitleSize = Math.max(14, Math.min(24, Math.floor(350 / Math.max(orderTitle.length, 1))));
       if(saleState.state === "stopped"){
         return `
           <section class="order-card" id="orderForm">
@@ -2567,12 +2576,12 @@
         <section class="order-card" id="orderForm" data-order-product="${escapeHtml(product.id)}">
           <div class="order-product-head">
             <div>
-              <h3>${escapeHtml(product.title || "상품")}</h3>
+              <h3 class="order-title-fit" style="font-size:${orderTitleSize}px">${escapeHtml(orderTitle)}</h3>
               ${product.subtitle ? `<p class="product-subtitle">${escapeHtml(product.subtitle)}</p>` : ""}
               <strong class="price">${formatPrice(product.salePrice)}</strong>
               <div class="badge-row">
                 <span class="badge ${saleState.canOrder ? "" : "gray"}">${escapeHtml(saleState.label)}</span>
-                <span class="badge gray">${escapeHtml(buyerSaleLabel(product))}</span>
+                <span class="badge gray sale-date-badge">${escapeHtml(buyerSaleLabel(product))}</span>
               </div>
             </div>
           </div>
@@ -2662,8 +2671,7 @@
               <div class="payment-notice">
                 결제 후 카톡방에<br>
                 결제 내역을 남겨주시면 빠르게 결제 확인해드리겠습니다.<br>
-                확인 후 체크 표시로 안내드릴게요 😊<br>
-                예시) 청각 1번 1개 결제했습니다.
+                확인 후 체크 표시로 안내드릴게요 😊
               </div>
             </div>
 
@@ -2681,8 +2689,7 @@
               </div>
               <div class="seoulpay-notice">
                 서울페이로 결제 후 카톡방에 결제 내역을 남겨주세요.<br>
-                확인 후 체크 표시로 안내드릴게요 😊<br>
-                예시) 청각 1번 1개 결제했습니다.
+                확인 후 체크 표시로 안내드릴게요 😊
               </div>
               <div class="payer-highlight">
                 <label class="field">
